@@ -20,10 +20,9 @@ interface FiltersData {
 interface ListingsPageClientProps {
   filtersData: FiltersData
   totalCount: number
-  formatPrice: (price: number) => string
 }
 
-export function ListingsPageClient({ filtersData, totalCount, formatPrice }: ListingsPageClientProps) {
+export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClientProps) {
   const [listings, setListings] = useState<OOHListing[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -37,6 +36,15 @@ export function ListingsPageClient({ filtersData, totalCount, formatPrice }: Lis
   const [selectedCity, setSelectedCity] = useState("all")
   const [selectedType, setSelectedType] = useState("all")
   const [sortBy, setSortBy] = useState("name")
+
+  // Format price helper function - moved inside component
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(price)
+  }
 
   // Fetch listings in batches
   const fetchListingsBatch = useCallback(

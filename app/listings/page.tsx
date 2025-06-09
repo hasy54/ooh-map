@@ -1,15 +1,6 @@
 import { MediaService } from "../../lib/media-service"
 import { ListingsPageClient } from "./listings-page-client"
 
-// Format price helper
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price)
-}
-
 export default async function ListingsPage() {
   try {
     // Only fetch filters data and total count - no listings yet!
@@ -28,7 +19,7 @@ export default async function ListingsPage() {
             </p>
           </div>
 
-          <ListingsPageClient filtersData={filtersData} totalCount={totalCount} formatPrice={formatPrice} />
+          <ListingsPageClient filtersData={filtersData} totalCount={totalCount} />
         </div>
       </div>
     )
@@ -56,7 +47,7 @@ export default async function ListingsPage() {
             <p className="text-red-700">There was an error loading the listings page. Please refresh to try again.</p>
           </div>
 
-          <ListingsPageClient filtersData={fallbackFiltersData} totalCount={0} formatPrice={formatPrice} />
+          <ListingsPageClient filtersData={fallbackFiltersData} totalCount={0} />
         </div>
       </div>
     )
