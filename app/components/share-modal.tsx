@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { X, Copy, Check } from "lucide-react"
 import type { OOHListing } from "../types/ooh"
+import { generateListingSlug } from "../../utils/slug-utils"
 
 interface ShareModalProps {
   listing: OOHListing
@@ -19,7 +20,7 @@ export function ShareModal({ listing, isOpen, onClose }: ShareModalProps) {
   if (!isOpen) return null
 
   // Generate the shareable link (you can customize this URL structure)
-  const shareUrl = `${window.location.origin}?listing=${listing.id}&lat=${listing.location.lat}&lng=${listing.location.lng}`
+  const shareUrl = `${window.location.origin}/listings/${generateListingSlug(listing)}`
 
   const shareText = `Check out this OOH advertising space: ${listing.name} in ${listing.location.city}. ${shareUrl}`
 

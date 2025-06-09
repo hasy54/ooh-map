@@ -4,194 +4,22 @@ import type { OOHListing } from "../types/ooh"
 
 type MediaRow = Database["public"]["Tables"]["media"]["Row"]
 
-// Coordinate validation and correction utilities
-class CoordinateParser {
-  // India bounds for validation
-  static readonly INDIA_BOUNDS = {
-    north: 37.6,
-    south: 6.4,
-    east: 97.25,
-    west: 68.7,
-  }
-
-  // Parse and validate coordinates
-  static parseCoordinates(lat: string | number, lng: string | number): { lat: number; lng: number } | null {
-    try {
-      let parsedLat = typeof lat === "string" ? Number.parseFloat(lat.trim()) : lat
-      let parsedLng = typeof lng === "string" ? Number.parseFloat(lng.trim()) : lng
-
-      // Handle invalid numbers
-      if (isNaN(parsedLat) || isNaN(parsedLng)) {
-        console.warn("Invalid coordinate format:", { lat, lng })
-        return null
-      }
-
-      // Fix common coordinate swapping (if lat is in lng range and vice versa)
-      if (this.isInLongitudeRange(parsedLat) && this.isInLatitudeRange(parsedLng)) {
-        console.warn("Coordinates appear swapped, fixing:", { original: { lat: parsedLat, lng: parsedLng } })
-        const temp = parsedLat
-        parsedLat = parsedLng
-        parsedLng = temp
-      }
-
-      // Fix decimal point issues (coordinates with too many or too few decimal places)
-      parsedLat = this.fixDecimalPlaces(parsedLat, "latitude")
-      parsedLng = this.fixDecimalPlaces(parsedLng, "longitude")
-
-      // Validate coordinates are within India bounds
-      if (!this.isValidIndiaCoordinate(parsedLat, parsedLng)) {
-        console.warn("Coordinates outside India bounds:", { lat: parsedLat, lng: parsedLng })
-
-        // Try to fix common issues
-        const fixed = this.attemptCoordinateFix(parsedLat, parsedLng)
-        if (fixed && this.isValidIndiaCoordinate(fixed.lat, fixed.lng)) {
-          console.log("Fixed coordinates:", fixed)
-          return fixed
-        }
-
-        return null
-      }
-
-      return { lat: parsedLat, lng: parsedLng }
-    } catch (error) {
-      console.error("Error parsing coordinates:", error, { lat, lng })
-      return null
-    }
-  }
-
-  // Check if coordinate is in valid India bounds
-  static isValidIndiaCoordinate(lat: number, lng: number): boolean {
-    return (
-      lat >= this.INDIA_BOUNDS.south &&
-      lat <= this.INDIA_BOUNDS.north &&
-      lng >= this.INDIA_BOUNDS.west &&
-      lng <= this.INDIA_BOUNDS.east
-    )
-  }
-
-  // Check if value is in typical latitude range for India
-  static isInLatitudeRange(value: number): boolean {
-    return value >= this.INDIA_BOUNDS.south && value <= this.INDIA_BOUNDS.north
-  }
-
-  // Check if value is in typical longitude range for India
-  static isInLongitudeRange(value: number): boolean {
-    return value >= this.INDIA_BOUNDS.west && value <= this.INDIA_BOUNDS.east
-  }
-
-  // Fix decimal place issues
-  static fixDecimalPlaces(coord: number, type: "latitude" | "longitude"): number {
-    const coordStr = coord.toString()
-
-    // If coordinate has no decimal places but should (like 1297 instead of 12.97)
-    if (!coordStr.includes(".") && coordStr.length >= 4) {
-      if (type === "latitude" && coordStr.length === 4) {
-        // Convert 1297 to 12.97
-        return Number.parseFloat(coordStr.substring(0, 2) + "." + coordStr.substring(2))
-      }
-      if (type === "longitude" && coordStr.length === 4) {
-        // Convert 7759 to 77.59
-        return Number.parseFloat(coordStr.substring(0, 2) + "." + coordStr.substring(2))
-      }
-      if (type === "longitude" && coordStr.length === 5) {
-        // Convert 77594 to 77.594
-        return Number.parseFloat(coordStr.substring(0, 2) + "." + coordStr.substring(2))
-      }
-    }
-
-    // If coordinate has too many digits before decimal (like 1297.46 instead of 12.9746)
-    if (coordStr.includes(".")) {
-      const [whole, decimal] = coordStr.split(".")
-      if (whole.length > 2 && type === "latitude") {
-        // Convert 1297.46 to 12.9746
-        return Number.parseFloat(whole.substring(0, 2) + "." + whole.substring(2) + decimal)
-      }
-      if (whole.length > 2 && type === "longitude") {
-        // Convert 7759.46 to 77.5946
-        return Number.parseFloat(whole.substring(0, 2) + "." + whole.substring(2) + decimal)
-      }
-    }
-
-    return coord
-  }
-
-  // Attempt to fix common coordinate issues
-  static attemptCoordinateFix(lat: number, lng: number): { lat: number; lng: number } | null {
-    // Try dividing by 10 if coordinates are too large
-    if (lat > 100 || lng > 100) {
-      const fixedLat = lat / 10
-      const fixedLng = lng / 10
-      if (this.isValidIndiaCoordinate(fixedLat, fixedLng)) {
-        return { lat: fixedLat, lng: fixedLng }
-      }
-    }
-
-    // Try multiplying by 10 if coordinates are too small
-    if (lat < 1 || lng < 1) {
-      const fixedLat = lat * 10
-      const fixedLng = lng * 10
-      if (this.isValidIndiaCoordinate(fixedLat, fixedLng)) {
-        return { lat: fixedLat, lng: fixedLng }
-      }
-    }
-
-    // Try adding missing digits for common Indian coordinate patterns
-    if (lat > 6 && lat < 38 && lng > 68 && lng < 98) {
-      // Coordinates might be missing decimal precision
-      return { lat, lng }
-    }
-
-    return null
-  }
-
-  // Parse coordinates from various string formats
-  static parseFromString(coordString: string): { lat: number; lng: number } | null {
-    if (!coordString || typeof coordString !== "string") return null
-
-    // Remove common prefixes and clean the string
-    const cleaned = coordString
-      .replace(/[^\d.,\-\s]/g, "") // Remove non-numeric characters except comma, dot, dash, space
-      .trim()
-
-    // Try different parsing patterns
-    const patterns = [
-      /^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/, // "12.34, 56.78" or "12.34 56.78"
-      /^(-?\d+\.?\d*),(-?\d+\.?\d*)$/, // "12.34,56.78"
-      /^(-?\d+\.?\d*)\s+(-?\d+\.?\d*)$/, // "12.34 56.78"
-    ]
-
-    for (const pattern of patterns) {
-      const match = cleaned.match(pattern)
-      if (match) {
-        const lat = Number.parseFloat(match[1])
-        const lng = Number.parseFloat(match[2])
-        return this.parseCoordinates(lat, lng)
-      }
-    }
-
-    return null
-  }
-}
-
 async function convertToOOHListing(row: MediaRow): Promise<OOHListing> {
-  // Parse and validate coordinates
-  let coordinates = null
+  // Parse coordinates directly without validation
+  let coordinates = { lat: 19.076, lng: 72.8777 } // Default to Mumbai center
 
   // Try parsing from lat/long fields
   if (row.lat && row.long) {
-    coordinates = CoordinateParser.parseCoordinates(row.lat, row.long)
-  }
+    try {
+      const lat = typeof row.lat === "string" ? Number.parseFloat(row.lat.trim()) : row.lat
+      const lng = typeof row.long === "string" ? Number.parseFloat(row.long.trim()) : row.long
 
-  // If that fails, try parsing from geolocation field if it contains coordinates
-  if (!coordinates && row.geolocation) {
-    const geoStr = typeof row.geolocation === "string" ? row.geolocation : JSON.stringify(row.geolocation)
-    coordinates = CoordinateParser.parseFromString(geoStr)
-  }
-
-  // Default to Mumbai center if coordinates are invalid
-  if (!coordinates) {
-    console.warn(`Invalid coordinates for listing ${row.id}:`, { lat: row.lat, long: row.long })
-    coordinates = { lat: 19.076, lng: 72.8777 } // Mumbai center
+      if (!isNaN(lat) && !isNaN(lng)) {
+        coordinates = { lat, lng }
+      }
+    } catch (error) {
+      console.warn("Error parsing coordinates:", error)
+    }
   }
 
   // Fetch user name if user_id exists
@@ -266,13 +94,10 @@ export class MediaService {
     try {
       let query = supabase.from("media").select("*")
 
-      // Filter out listings with missing coordinates
-      query = query.not("lat", "is", null).not("long", "is", null).neq("lat", "").neq("long", "")
-
-      // Apply filters
-      if (filters?.city && filters.city !== "all") {
-        query = query.eq("city", filters.city)
-      }
+      // Remove city filter - we'll fetch all and filter client-side
+      // if (filters?.city && filters.city !== "all") {
+      //   query = query.eq("city", filters.city)
+      // }
 
       if (filters?.type && filters.type !== "all") {
         query = query.eq("type", filters.type)
@@ -315,8 +140,43 @@ export class MediaService {
         throw error
       }
 
-      const listings = await Promise.all((data || []).map(convertToOOHListing))
-      return listings
+      const allListings = await Promise.all((data || []).map(convertToOOHListing))
+
+      // Client-side filtering for Indian bounds and valid coordinates
+      const filteredListings = allListings.filter((listing) => {
+        // Check if coordinates exist and are valid
+        if (!listing.location.lat || !listing.location.lng) {
+          return false
+        }
+
+        // Check if coordinates are within Indian bounds
+        // India bounds: lat 6.4 to 37.6, lng 68.7 to 97.25
+        const lat = listing.location.lat
+        const lng = listing.location.lng
+
+        const isInIndiaBounds = lat >= 6.4 && lat <= 37.6 && lng >= 68.7 && lng <= 97.25
+
+        if (!isInIndiaBounds) {
+          console.log(`Filtering out listing "${listing.name}" - coordinates outside India bounds: ${lat}, ${lng}`)
+          return false
+        }
+
+        // Apply city filter client-side if specified
+        if (filters?.city && filters.city !== "all") {
+          const cityMatch = listing.location.city.toLowerCase() === filters.city.toLowerCase()
+          if (!cityMatch) {
+            return false
+          }
+        }
+
+        return true
+      })
+
+      console.log(
+        `Fetched ${allListings.length} total listings, filtered to ${filteredListings.length} valid listings in India`,
+      )
+
+      return filteredListings
     } catch (error) {
       console.error("Error in getListings:", error)
       return []
@@ -521,6 +381,164 @@ export class MediaService {
       return uniqueSubtypes as string[]
     } catch (error) {
       console.error("Error in getSubtypes:", error)
+      return []
+    }
+  }
+
+  // Get filters data quickly (cities, types, price range)
+  static async getFiltersData(): Promise<{
+    cities: string[]
+    types: string[]
+    subtypes: string[]
+    priceRange: { min: number; max: number }
+  }> {
+    try {
+      // Run all filter queries in parallel for speed
+      const [citiesResult, typesResult, subtypesResult, priceResult] = await Promise.all([
+        supabase.from("media").select("city").not("city", "is", null),
+        supabase.from("media").select("type").not("type", "is", null),
+        supabase.from("media").select("subtype").not("subtype", "is", null),
+        supabase.from("media").select("price").not("price", "is", null).order("price", { ascending: true }),
+      ])
+
+      const cities = [...new Set(citiesResult.data?.map((item) => item.city).filter(Boolean) || [])].sort()
+      const types = [...new Set(typesResult.data?.map((item) => item.type).filter(Boolean) || [])].sort()
+      const subtypes = [...new Set(subtypesResult.data?.map((item) => item.subtype).filter(Boolean) || [])].sort()
+
+      const prices = priceResult.data?.map((item) => item.price).filter(Boolean) || []
+      const priceRange = {
+        min: prices.length > 0 ? Math.min(...prices) : 0,
+        max: prices.length > 0 ? Math.max(...prices) : 300000,
+      }
+
+      return { cities, types, subtypes, priceRange }
+    } catch (error) {
+      console.error("Error fetching filters data:", error)
+      return { cities: [], types: [], subtypes: [], priceRange: { min: 0, max: 300000 } }
+    }
+  }
+
+  // Get listings count for pagination
+  static async getListingsCount(filters?: {
+    city?: string
+    type?: string
+    availability?: string
+    illumination?: string
+    minPrice?: number
+    maxPrice?: number
+    searchQuery?: string
+  }): Promise<number> {
+    try {
+      // For accurate count, we need to fetch all and filter client-side
+      const allListings = await this.getListings(filters)
+      return allListings.length
+    } catch (error) {
+      console.error("Error in getListingsCount:", error)
+      return 0
+    }
+  }
+
+  // Get paginated listings
+  static async getPaginatedListings(
+    page = 0,
+    limit = 100,
+    filters?: {
+      city?: string
+      type?: string
+      availability?: string
+      illumination?: string
+      minPrice?: number
+      maxPrice?: number
+      searchQuery?: string
+    },
+  ): Promise<OOHListing[]> {
+    try {
+      let query = supabase.from("media").select("*")
+
+      // Remove city filter - we'll fetch all and filter client-side
+      // if (filters?.city && filters.city !== "all") {
+      //   query = query.eq("city", filters.city)
+      // }
+
+      if (filters?.type && filters.type !== "all") {
+        query = query.eq("type", filters.type)
+      }
+
+      if (filters?.availability && filters.availability !== "all") {
+        const isAvailable = filters.availability === "Available"
+        query = query.eq("availability", isAvailable)
+      }
+
+      if (filters?.illumination && filters.illumination !== "all") {
+        let subtype = ""
+        if (filters.illumination === "Digital") subtype = "Digital"
+        else if (filters.illumination === "Lit") subtype = "Backlit"
+        else if (filters.illumination === "Non-lit") subtype = "Static"
+
+        if (subtype) {
+          query = query.eq("subtype", subtype)
+        }
+      }
+
+      if (filters?.minPrice !== undefined) {
+        query = query.gte("price", filters.minPrice)
+      }
+
+      if (filters?.maxPrice !== undefined) {
+        query = query.lte("price", filters.maxPrice)
+      }
+
+      if (filters?.searchQuery) {
+        query = query.or(`name.ilike.%${filters.searchQuery}%,geolocation->>address.ilike.%${filters.searchQuery}%`)
+      }
+
+      // For pagination, we need to fetch more than needed and then filter
+      // This is less efficient but ensures we get valid results
+      const fetchLimit = limit * 3 // Fetch 3x more to account for filtering
+      const from = page * fetchLimit
+      const to = from + fetchLimit - 1
+
+      const { data, error } = await query.order("created_at", { ascending: false }).range(from, to)
+
+      if (error) {
+        console.error("Error fetching paginated listings:", error)
+        throw error
+      }
+
+      const allListings = await Promise.all((data || []).map(convertToOOHListing))
+
+      // Client-side filtering for Indian bounds and valid coordinates
+      const filteredListings = allListings.filter((listing) => {
+        // Check if coordinates exist and are valid
+        if (!listing.location.lat || !listing.location.lng) {
+          return false
+        }
+
+        // Check if coordinates are within Indian bounds
+        const lat = listing.location.lat
+        const lng = listing.location.lng
+
+        const isInIndiaBounds = lat >= 6.4 && lat <= 37.6 && lng >= 68.7 && lng <= 97.25
+
+        if (!isInIndiaBounds) {
+          return false
+        }
+
+        // Apply city filter client-side if specified
+        if (filters?.city && filters.city !== "all") {
+          const cityMatch = listing.location.city.toLowerCase() === filters.city.toLowerCase()
+          if (!cityMatch) {
+            return false
+          }
+        }
+
+        return true
+      })
+
+      // Return only the requested number of listings
+      return filteredListings.slice(0, limit)
+    } catch (error) {
+      console.error("Error in getPaginatedListings:", error)
       return []
     }
   }

@@ -19,9 +19,6 @@ export function ListingCard({ listing, onClick, isSelected }: ListingCardProps) 
     }).format(price)
   }
 
-  // Generate SEO description
-  const seoDescription = `Discover premium ${listing.type} advertising at ${listing.name}. Located in ${listing.location.city}, this site offers ${listing.specifications.visibility} visibility and is an ideal spot for brands looking to capture daily foot traffic. The space is currently marked as '${listing.availability}', making it a great opportunity for quick booking. With a structure size of ${listing.specifications.size}, and ${listing.specifications.illumination} display, it's perfect for both day and night campaigns. This ${listing.type} is managed by ${listing.managedBy || "professional team"}, ensuring reliable operations and support. Book this location now for maximum exposure in ${listing.location.city} and surrounding areas. Perfect for brands looking to dominate local attention with outdoor advertising that works.`
-
   return (
     <div
       className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
@@ -29,85 +26,11 @@ export function ListingCard({ listing, onClick, isSelected }: ListingCardProps) 
       }`}
       onClick={onClick}
     >
-      {/* SEO Hidden Description */}
-      <div className="sr-only" aria-hidden="true">
-        {seoDescription}
-      </div>
-
-      {/* JSON-LD Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: listing.name,
-            description: seoDescription,
-            category: "Outdoor Advertising",
-            brand: {
-              "@type": "Brand",
-              name: listing.managedBy || "OOH Advertising India",
-            },
-            offers: {
-              "@type": "Offer",
-              price: listing.pricing.monthly,
-              priceCurrency: "INR",
-              availability:
-                listing.availability === "Available" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-              priceSpecification: {
-                "@type": "UnitPriceSpecification",
-                price: listing.pricing.monthly,
-                priceCurrency: "INR",
-                unitText: "monthly",
-              },
-            },
-            location: {
-              "@type": "Place",
-              name: listing.location.address,
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: listing.location.address,
-                addressLocality: listing.location.city,
-                addressRegion: listing.location.state,
-                addressCountry: "IN",
-              },
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: listing.location.lat,
-                longitude: listing.location.lng,
-              },
-            },
-            additionalProperty: [
-              {
-                "@type": "PropertyValue",
-                name: "Size",
-                value: listing.specifications.size,
-              },
-              {
-                "@type": "PropertyValue",
-                name: "Illumination",
-                value: listing.specifications.illumination,
-              },
-              {
-                "@type": "PropertyValue",
-                name: "Visibility",
-                value: listing.specifications.visibility,
-              },
-              {
-                "@type": "PropertyValue",
-                name: "Traffic",
-                value: listing.specifications.traffic,
-              },
-            ],
-          }),
-        }}
-      />
-
       <div className="flex gap-3">
         {listing.images && listing.images.length > 0 && listing.images[0] ? (
           <img
             src={listing.images[0] || "/placeholder.svg"}
-            alt={`${listing.type} advertising space at ${listing.name} in ${listing.location.city}`}
+            alt={listing.name}
             className="w-20 h-20 object-cover rounded-lg"
           />
         ) : null}
