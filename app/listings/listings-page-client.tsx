@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Search, MapPin, Eye, Zap, ArrowRight, Loader2 } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { MapPin, Eye, Zap, ArrowRight, Loader2, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { OOHListing } from "../../types/ooh"
-import { generateListingSlug } from "../../utils/slug-utils"
+import { Input } from "@/components/ui/input"
 
 interface FiltersData {
   cities: string[]
@@ -31,10 +30,8 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
   const [error, setError] = useState<string | null>(null)
   const [loadedCount, setLoadedCount] = useState(0)
 
-  // Filter states
+  // Remove all filter states
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCity, setSelectedCity] = useState("all")
-  const [selectedType, setSelectedType] = useState("all")
   const [sortBy, setSortBy] = useState("name")
 
   // Format price helper function - moved inside component
@@ -46,7 +43,7 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
     }).format(price)
   }
 
-  // Fetch listings in batches
+  // Update fetchListingsBatch to remove filters
   const fetchListingsBatch = useCallback(
     async (page = 0, reset = false) => {
       try {
@@ -70,8 +67,6 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
             page,
             limit: 100,
             filters: {
-              city: selectedCity !== "all" ? selectedCity : undefined,
-              type: selectedType !== "all" ? selectedType : undefined,
               searchQuery: searchQuery || undefined,
             },
           }),
@@ -105,7 +100,7 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
         setLoadingMore(false)
       }
     },
-    [selectedCity, selectedType, searchQuery],
+    [searchQuery], // Add searchQuery back as dependency
   )
 
   // Load more listings manually
@@ -115,7 +110,7 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
     }
   }, [fetchListingsBatch, currentPage, loadingMore, hasMore])
 
-  // Initial load
+  // Remove filter change effects, keep only initial load
   useEffect(() => {
     console.log("Starting initial batch load...")
     fetchListingsBatch(0, true)
@@ -133,15 +128,10 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
     }
   }, [loading, loadingMore, hasMore, listings.length, currentPage, fetchListingsBatch])
 
-  // Reset when filters change
-  useEffect(() => {
-    console.log("Filters changed, resetting...")
-    setCurrentPage(0)
-    setHasMore(true)
-    fetchListingsBatch(0, true)
-  }, [selectedCity, selectedType])
+  // Remove search effect since we're removing search
+  // Remove filter reset effects
 
-  // Debounced search
+  // Add back the search effect:
   useEffect(() => {
     if (searchQuery === "") return
 
@@ -173,9 +163,10 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
     }
   })
 
+  // Simplify the filters section to just show sort:
   return (
     <>
-      {/* Filters */}
+      {/* Simplified Filters - Just Sort */}
       <div className="flex flex-wrap gap-4 items-center mb-8">
         <div className="relative flex-1 min-w-64">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -186,34 +177,6 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
             className="pl-10"
           />
         </div>
-
-        <Select value={selectedCity} onValueChange={setSelectedCity}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Cities" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Cities</SelectItem>
-            {filtersData.cities.map((city) => (
-              <SelectItem key={city} value={city}>
-                {city}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={selectedType} onValueChange={setSelectedType}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {filtersData.types.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-48">
@@ -279,7 +242,7 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sortedListings.map((listing) => (
-              <Link key={listing.id} href={`/listings/${generateListingSlug(listing)}`}>
+              <Link key={listing.id} href={`/listings/${listing.id}`}>
                 <div className="bg-white rounded-lg border hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
                   {/* Image */}
                   {listing.images && listing.images.length > 0 && listing.images[0] ? (
@@ -367,16 +330,8 @@ export function ListingsPageClient({ filtersData, totalCount }: ListingsPageClie
         <div className="text-center py-12">
           <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings found</h3>
-          <p className="text-gray-600 mb-4">Try adjusting your search criteria or filters</p>
-          <Button
-            onClick={() => {
-              setSearchQuery("")
-              setSelectedCity("all")
-              setSelectedType("all")
-            }}
-          >
-            Clear Filters
-          </Button>
+          <p className="text-gray-600 mb-4">There are currently no listings available</p>
+          <Button onClick={() => fetchListingsBatch(0, true)}>Refresh</Button>
         </div>
       )}
     </>

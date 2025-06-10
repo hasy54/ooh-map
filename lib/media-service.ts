@@ -6,7 +6,8 @@ type MediaRow = Database["public"]["Tables"]["media"]["Row"]
 
 async function convertToOOHListing(row: MediaRow): Promise<OOHListing> {
   // Parse coordinates directly without validation
-  let coordinates = { lat: 19.076, lng: 72.8777 } // Default to Mumbai center
+  // Default coordinates if parsing fails
+  let coordinates = { lat: 0, lng: 0 }
 
   // Try parsing from lat/long fields
   if (row.lat && row.long) {
@@ -81,102 +82,63 @@ async function convertToOOHListing(row: MediaRow): Promise<OOHListing> {
 }
 
 export class MediaService {
-  // Get all listings with optional filters
-  static async getListings(filters?: {
-    city?: string
-    type?: string
-    availability?: string
-    illumination?: string
-    minPrice?: number
-    maxPrice?: number
-    searchQuery?: string
-  }): Promise<OOHListing[]> {
+  // Get all listings - no filters, no limits
+  static async getListings(): Promise<OOHListing[]> {
     try {
-      let query = supabase.from("media").select("*")
+      console.log("Fetching ALL listings from database...")
 
-      // Remove city filter - we'll fetch all and filter client-side
-      // if (filters?.city && filters.city !== "all") {
-      //   query = query.eq("city", filters.city)
-      // }
+      // First, get the total count
+      const { count, error: countError } = await supabase.from("media").select("*", { count: "exact", head: true })
 
-      if (filters?.type && filters.type !== "all") {
-        query = query.eq("type", filters.type)
+      if (countError) {
+        console.error("Error getting count:", countError)
+      } else {
+        console.log(`Total records in database: ${count}`)
       }
 
-      if (filters?.availability && filters.availability !== "all") {
-        // Convert string availability to boolean
-        const isAvailable = filters.availability === "Available"
-        query = query.eq("availability", isAvailable)
-      }
+      // Fetch all records in batches to avoid memory issues
+      const allListings: MediaRow[] = []
+      const batchSize = 1000
+      let from = 0
+      let hasMore = true
 
-      if (filters?.illumination && filters.illumination !== "all") {
-        // Map illumination to subtype
-        let subtype = ""
-        if (filters.illumination === "Digital") subtype = "Digital"
-        else if (filters.illumination === "Lit") subtype = "Backlit"
-        else if (filters.illumination === "Non-lit") subtype = "Static"
+      while (hasMore) {
+        console.log(`Fetching batch from ${from} to ${from + batchSize - 1}`)
 
-        if (subtype) {
-          query = query.eq("subtype", subtype)
-        }
-      }
+        const { data, error } = await supabase
+          .from("media")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(from, from + batchSize - 1)
 
-      if (filters?.minPrice !== undefined) {
-        query = query.gte("price", filters.minPrice)
-      }
-
-      if (filters?.maxPrice !== undefined) {
-        query = query.lte("price", filters.maxPrice)
-      }
-
-      if (filters?.searchQuery) {
-        query = query.or(`name.ilike.%${filters.searchQuery}%,geolocation->>address.ilike.%${filters.searchQuery}%`)
-      }
-
-      const { data, error } = await query.order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching listings:", error)
-        throw error
-      }
-
-      const allListings = await Promise.all((data || []).map(convertToOOHListing))
-
-      // Client-side filtering for Indian bounds and valid coordinates
-      const filteredListings = allListings.filter((listing) => {
-        // Check if coordinates exist and are valid
-        if (!listing.location.lat || !listing.location.lng) {
-          return false
+        if (error) {
+          console.error("Error fetching batch:", error)
+          throw error
         }
 
-        // Check if coordinates are within Indian bounds
-        // India bounds: lat 6.4 to 37.6, lng 68.7 to 97.25
-        const lat = listing.location.lat
-        const lng = listing.location.lng
+        if (data && data.length > 0) {
+          allListings.push(...data)
+          console.log(`Fetched ${data.length} records, total so far: ${allListings.length}`)
 
-        const isInIndiaBounds = lat >= 6.4 && lat <= 37.6 && lng >= 68.7 && lng <= 97.25
-
-        if (!isInIndiaBounds) {
-          console.log(`Filtering out listing "${listing.name}" - coordinates outside India bounds: ${lat}, ${lng}`)
-          return false
-        }
-
-        // Apply city filter client-side if specified
-        if (filters?.city && filters.city !== "all") {
-          const cityMatch = listing.location.city.toLowerCase() === filters.city.toLowerCase()
-          if (!cityMatch) {
-            return false
+          // If we got less than the batch size, we're done
+          if (data.length < batchSize) {
+            hasMore = false
+          } else {
+            from += batchSize
           }
+        } else {
+          hasMore = false
         }
+      }
 
-        return true
-      })
+      console.log(`Total fetched: ${allListings.length} listings`)
 
-      console.log(
-        `Fetched ${allListings.length} total listings, filtered to ${filteredListings.length} valid listings in India`,
-      )
+      const convertedListings = await Promise.all(allListings.map(convertToOOHListing))
 
-      return filteredListings
+      console.log(`Converted ${convertedListings.length} listings`)
+
+      // Return all listings without any filtering
+      return convertedListings
     } catch (error) {
       console.error("Error in getListings:", error)
       return []
@@ -200,9 +162,9 @@ export class MediaService {
     }
   }
 
-  // Get listings by city
+  // Get listings by city - now returns all listings
   static async getListingsByCity(city: string): Promise<OOHListing[]> {
-    return this.getListings({ city })
+    return this.getListings()
   }
 
   // Get listings within a geographic bounds
@@ -418,125 +380,49 @@ export class MediaService {
     }
   }
 
-  // Get listings count for pagination
-  static async getListingsCount(filters?: {
-    city?: string
-    type?: string
-    availability?: string
-    illumination?: string
-    minPrice?: number
-    maxPrice?: number
-    searchQuery?: string
-  }): Promise<number> {
+  // Get listings count - no filters
+  static async getListingsCount(): Promise<number> {
     try {
-      // For accurate count, we need to fetch all and filter client-side
-      const allListings = await this.getListings(filters)
-      return allListings.length
+      const { count, error } = await supabase.from("media").select("*", { count: "exact", head: true })
+
+      if (error) {
+        console.error("Error in getListingsCount:", error)
+        return 0
+      }
+
+      return count || 0
     } catch (error) {
       console.error("Error in getListingsCount:", error)
       return 0
     }
   }
 
-  // Get paginated listings
-  static async getPaginatedListings(
-    page = 0,
-    limit = 100,
-    filters?: {
-      city?: string
-      type?: string
-      availability?: string
-      illumination?: string
-      minPrice?: number
-      maxPrice?: number
-      searchQuery?: string
-    },
-  ): Promise<OOHListing[]> {
+  // Get paginated listings - no filters
+  static async getPaginatedListings(page = 0, limit = 100): Promise<OOHListing[]> {
     try {
-      let query = supabase.from("media").select("*")
+      // Calculate the range for this page
+      const from = page * limit
+      const to = from + limit - 1
 
-      // Remove city filter - we'll fetch all and filter client-side
-      // if (filters?.city && filters.city !== "all") {
-      //   query = query.eq("city", filters.city)
-      // }
+      console.log(`Fetching paginated listings: page ${page}, from ${from} to ${to}`)
 
-      if (filters?.type && filters.type !== "all") {
-        query = query.eq("type", filters.type)
-      }
-
-      if (filters?.availability && filters.availability !== "all") {
-        const isAvailable = filters.availability === "Available"
-        query = query.eq("availability", isAvailable)
-      }
-
-      if (filters?.illumination && filters.illumination !== "all") {
-        let subtype = ""
-        if (filters.illumination === "Digital") subtype = "Digital"
-        else if (filters.illumination === "Lit") subtype = "Backlit"
-        else if (filters.illumination === "Non-lit") subtype = "Static"
-
-        if (subtype) {
-          query = query.eq("subtype", subtype)
-        }
-      }
-
-      if (filters?.minPrice !== undefined) {
-        query = query.gte("price", filters.minPrice)
-      }
-
-      if (filters?.maxPrice !== undefined) {
-        query = query.lte("price", filters.maxPrice)
-      }
-
-      if (filters?.searchQuery) {
-        query = query.or(`name.ilike.%${filters.searchQuery}%,geolocation->>address.ilike.%${filters.searchQuery}%`)
-      }
-
-      // For pagination, we need to fetch more than needed and then filter
-      // This is less efficient but ensures we get valid results
-      const fetchLimit = limit * 3 // Fetch 3x more to account for filtering
-      const from = page * fetchLimit
-      const to = from + fetchLimit - 1
-
-      const { data, error } = await query.order("created_at", { ascending: false }).range(from, to)
+      const { data, error } = await supabase
+        .from("media")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, to)
 
       if (error) {
         console.error("Error fetching paginated listings:", error)
         throw error
       }
 
+      console.log(`Fetched ${data?.length || 0} listings for page ${page}`)
+
       const allListings = await Promise.all((data || []).map(convertToOOHListing))
 
-      // Client-side filtering for Indian bounds and valid coordinates
-      const filteredListings = allListings.filter((listing) => {
-        // Check if coordinates exist and are valid
-        if (!listing.location.lat || !listing.location.lng) {
-          return false
-        }
-
-        // Check if coordinates are within Indian bounds
-        const lat = listing.location.lat
-        const lng = listing.location.lng
-
-        const isInIndiaBounds = lat >= 6.4 && lat <= 37.6 && lng >= 68.7 && lng <= 97.25
-
-        if (!isInIndiaBounds) {
-          return false
-        }
-
-        // Apply city filter client-side if specified
-        if (filters?.city && filters.city !== "all") {
-          const cityMatch = listing.location.city.toLowerCase() === filters.city.toLowerCase()
-          if (!cityMatch) {
-            return false
-          }
-        }
-
-        return true
-      })
-
-      // Return only the requested number of listings
-      return filteredListings.slice(0, limit)
+      // Return all listings without coordinate filtering
+      return allListings
     } catch (error) {
       console.error("Error in getPaginatedListings:", error)
       return []

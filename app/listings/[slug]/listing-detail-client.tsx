@@ -1,8 +1,5 @@
 "use client"
-
-import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ShareModal } from "../../components/share-modal"
 import type { OOHListing } from "../../../types/ooh"
 
 interface ListingDetailClientProps {
@@ -10,8 +7,6 @@ interface ListingDetailClientProps {
 }
 
 export function ListingDetailClient({ listing }: ListingDetailClientProps) {
-  const [showShareModal, setShowShareModal] = useState(false)
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -243,9 +238,6 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Share Modal */}
-      <ShareModal listing={listing} isOpen={showShareModal} onClose={() => setShowShareModal(false)} />
     </>
   )
 }

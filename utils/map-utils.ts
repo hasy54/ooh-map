@@ -1,11 +1,10 @@
-export const BANGALORE_CENTER = { lat: 12.9716, lng: 77.5946 }
+export const DEFAULT_CENTER = { lat: 0, lng: 0 } // Generic world center
 export const MUMBAI_CENTER = { lat: 19.076, lng: 72.8777 }
 export const DELHI_CENTER = { lat: 28.6139, lng: 77.209 }
 export const CHENNAI_CENTER = { lat: 13.0827, lng: 80.2707 }
 export const HYDERABAD_CENTER = { lat: 17.385, lng: 78.4867 }
 
 export const CITY_CENTERS = {
-  bangalore: BANGALORE_CENTER,
   mumbai: MUMBAI_CENTER,
   delhi: DELHI_CENTER,
   chennai: CHENNAI_CENTER,
@@ -51,4 +50,4 @@ export const getMapBounds = (listings: Array<{ location: { lat: number; lng: num
   }
 }
 
-export default MUMBAI_CENTER
+export default DEFAULT_CENTER
