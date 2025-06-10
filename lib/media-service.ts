@@ -57,7 +57,7 @@ async function convertToOOHListing(row: MediaRow): Promise<OOHListing> {
       lng: coordinates.lng,
       address: row.geolocation?.address || "",
       city: row.city || "",
-      state: "",
+      state: row.States || "", // Changed from row.state to row.States
     },
     specifications: {
       size: `${row.width || 0}ft x ${row.height || 0}ft`,
@@ -217,6 +217,7 @@ export class MediaService {
           width: Number.parseInt(listing.specifications.size.split("x")[0]) || 0,
           height: Number.parseInt(listing.specifications.size.split("x")[1]) || 0,
           city: listing.location.city,
+          States: listing.location.state, // Changed from state to States
           traffic: listing.specifications.traffic,
           image_urls: listing.images,
           lat: listing.location.lat.toString(),
@@ -255,6 +256,7 @@ export class MediaService {
           }
         }
         if (updates.location.city) updateData.city = updates.location.city
+        if (updates.location.state) updateData.States = updates.location.state // Changed from state to States
       }
 
       if (updates.specifications) {
