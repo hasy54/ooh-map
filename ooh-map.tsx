@@ -491,7 +491,7 @@ export default function OOHMap() {
         /* Desktop Layout */
         <div className="flex-1 flex overflow-hidden">
           {/* Control Panel - New vertical panel similar to the image */}
-          <div className="w-16 flex flex-col items-center py-6 space-y-4 bg-gradient-to-b from-orange-100 via-pink-50 to-orange-50 border-r">
+          <div className="w-16 flex flex-col items-center py-6 space-y-4 bg-gradient-to-b from-orange-100 via-pink-50 to-orange-50 border-r shadow-xl shadow-md shadow-md shadow-xl">
             {/* Logo thumbnail */}
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <img src="/images/yash-ads-logo.png" alt="Yash Advertising" className="w-8 h-8 object-contain" />

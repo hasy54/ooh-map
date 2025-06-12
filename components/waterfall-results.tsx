@@ -291,7 +291,7 @@ export function WaterfallResults({
       <>
         <div className="p-4 animate-in slide-in-from-right-2 duration-300">
           {/* Back button with slide animation */}
-          <div className="mb-4 animate-in slide-in-from-top-2 duration-200">
+          <div className="sticky top-0 bg-white z-10 pb-4 mb-4 animate-in slide-in-from-top-2 duration-200">
             <button
               onClick={() => setSelectedListingDetails(null)}
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-2 transition-colors duration-200"
@@ -434,7 +434,7 @@ Please share more details and availability.`
     <>
       <div className="p-4 animate-in slide-in-from-right-2 duration-300">
         {/* Back button and header with slide animation */}
-        <div className="mb-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="sticky top-0 bg-white z-10 pb-4 mb-4 animate-in slide-in-from-top-2 duration-200">
           <button
             onClick={() => setSelectedType(null)}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-2 transition-colors duration-200"
