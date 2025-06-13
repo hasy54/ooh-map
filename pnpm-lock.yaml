@@ -102,8 +102,8 @@ importers:
         specifier: latest
         version: 3.7.0(react@19.0.0)
       '@sanity/image-url':
-        specifier: latest
-        version: 1.1.0
+        specifier: ^1.0.2
+        version: 1.0.2
       '@sanity/types':
         specifier: latest
         version: 3.92.0(@types/react@19.0.0)(debug@4.4.1)
@@ -2587,8 +2587,8 @@ packages:
     resolution: {integrity: sha512-2sb7tbdMDuUuVyocJPKG0gZBiOML/ovCe+mJiLrv1j69ODOfa2LfUjDVR+dRw/A/+XuxoJSSP8ebG7NiwTOgIA==}
     engines: {node: '>=18'}
 
-  '@sanity/image-url@1.1.0':
-    resolution: {integrity: sha512-JHumVRxzzaZAJyOimntdukA9TjjzsJiaiq/uUBdTknMLCNvtM6KQ5OCp6W5fIdY78uyFxtQjz+MPXwK8WBIxWg==}
+  '@sanity/image-url@1.0.2':
+    resolution: {integrity: sha512-C4+jb2ny3ZbMgEkLd7Z3C75DsxcTEoE+axXQJsQ75ou0AKWGdVsP351hqK6mJUUxn5HCSlu3vznoh7Yljye4cQ==}
     engines: {node: '>=10.0.0'}
 
   '@sanity/import@3.38.2':
@@ -9046,7 +9046,7 @@ snapshots:
       lodash: 4.17.21
       ts-brand: 0.2.0
 
-  '@sanity/image-url@1.1.0': {}
+  '@sanity/image-url@1.0.2': {}
 
   '@sanity/import@3.38.2(@types/react@19.0.0)':
     dependencies:
@@ -9176,7 +9176,7 @@ snapshots:
     dependencies:
       '@sanity/client': 7.5.0(debug@4.4.1)
       '@sanity/comlink': 3.0.5
-      '@sanity/visual-editing-types': 1.1.0(@sanity/client@7.5.0(debug@4.4.1))(@sanity/types@3.92.0(@types/react@19.0.0))
+      '@sanity/visual-editing-types': 1.1.0(@sanity/client@7.5.0)(@sanity/types@3.92.0(@types/react@19.0.0))
     transitivePeerDependencies:
       - '@sanity/types'
 
@@ -9184,7 +9184,7 @@ snapshots:
     dependencies:
       '@sanity/client': 7.5.0(debug@4.4.1)
       '@sanity/comlink': 3.0.5
-      '@sanity/visual-editing-types': 1.1.0(@sanity/client@7.5.0(debug@4.4.1))(@sanity/types@3.92.0(@types/react@19.0.0))
+      '@sanity/visual-editing-types': 1.1.0(@sanity/client@7.5.0)(@sanity/types@3.92.0(@types/react@19.0.0))
     transitivePeerDependencies:
       - '@sanity/types'
 
@@ -9406,7 +9406,7 @@ snapshots:
     optionalDependencies:
       '@sanity/types': 3.92.0(@types/react@19.0.0)(debug@4.4.1)
 
-  '@sanity/visual-editing-types@1.1.0(@sanity/client@7.5.0(debug@4.4.1))(@sanity/types@3.92.0(@types/react@19.0.0))':
+  '@sanity/visual-editing-types@1.1.0(@sanity/client@7.5.0)(@sanity/types@3.92.0(@types/react@19.0.0))':
     dependencies:
       '@sanity/client': 7.5.0(debug@4.4.1)
     optionalDependencies:
@@ -12548,7 +12548,7 @@ snapshots:
       '@sanity/export': 3.44.0(@types/react@19.0.0)
       '@sanity/icons': 3.7.0(react@19.0.0)
       '@sanity/id-utils': 1.0.0
-      '@sanity/image-url': 1.1.0
+      '@sanity/image-url': 1.0.2
       '@sanity/import': 3.38.2(@types/react@19.0.0)
       '@sanity/insert-menu': 1.1.12(@emotion/is-prop-valid@1.2.2)(@sanity/types@3.92.0(@types/react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react-is@18.3.1)(react@19.0.0)(styled-components@6.1.19(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
       '@sanity/logos': 2.2.0(@sanity/color@3.0.6)(react@19.0.0)

@@ -20,6 +20,11 @@ export default {
       validation: (Rule) => Rule.required(),
     },
     {
+      name: "description",
+      title: "Description",
+      type: "text",
+    },
+    {
       name: "mainImage",
       title: "Main image",
       type: "image",
@@ -28,51 +33,28 @@ export default {
       },
     },
     {
-      name: "gallery",
-      title: "Gallery",
-      type: "array",
-      of: [{ type: "image", options: { hotspot: true } }],
+      name: "address",
+      title: "Address",
+      type: "string",
     },
     {
-      name: "publishedAt",
-      title: "Published at",
-      type: "datetime",
+      name: "city",
+      title: "City",
+      type: "string",
     },
     {
-      name: "excerpt",
-      title: "Excerpt",
-      type: "text",
-      rows: 4,
+      name: "state",
+      title: "State",
+      type: "string",
     },
     {
-      name: "content",
-      title: "Content",
-      type: "array",
-      of: [
-        {
-          type: "block",
-        },
-        {
-          type: "image",
-          options: { hotspot: true },
-        },
-      ],
+      name: "lat",
+      title: "Latitude",
+      type: "number",
     },
     {
-      name: "location",
-      title: "Location",
-      type: "object",
-      fields: [
-        { name: "address", type: "string", title: "Address" },
-        { name: "city", type: "string", title: "City" },
-        { name: "state", type: "string", title: "State" },
-        { name: "lat", type: "number", title: "Latitude" },
-        { name: "lng", type: "number", title: "Longitude" },
-      ],
-    },
-    {
-      name: "price",
-      title: "Price",
+      name: "lng",
+      title: "Longitude",
       type: "number",
     },
     {
@@ -84,30 +66,41 @@ export default {
           { title: "Billboard", value: "billboard" },
           { title: "Digital", value: "digital" },
           { title: "Transit", value: "transit" },
-          { title: "Street Furniture", value: "street_furniture" },
+          { title: "Street Furniture", value: "street-furniture" },
         ],
       },
     },
     {
-      name: "availability",
-      title: "Availability",
-      type: "string",
-      options: {
-        list: [
-          { title: "Available", value: "available" },
-          { title: "Booked", value: "booked" },
-          { title: "Pending", value: "pending" },
-        ],
-      },
+      name: "price",
+      title: "Price",
+      type: "number",
+    },
+    {
+      name: "available",
+      title: "Available",
+      type: "boolean",
+      initialValue: true,
+    },
+    {
+      name: "publishedAt",
+      title: "Published at",
+      type: "datetime",
     },
     {
       name: "seo",
       title: "SEO",
       type: "object",
       fields: [
-        { name: "title", type: "string", title: "SEO Title" },
-        { name: "description", type: "text", title: "Description" },
-        { name: "keywords", type: "array", of: [{ type: "string" }], title: "Keywords" },
+        {
+          name: "title",
+          title: "SEO Title",
+          type: "string",
+        },
+        {
+          name: "description",
+          title: "SEO Description",
+          type: "text",
+        },
       ],
     },
   ],
@@ -115,15 +108,7 @@ export default {
     select: {
       title: "title",
       media: "mainImage",
-      location: "location.city",
-    },
-    prepare(selection) {
-      const { title, media, location } = selection
-      return {
-        title,
-        media,
-        subtitle: location ? `Location: ${location}` : "",
-      }
+      subtitle: "address",
     },
   },
 }

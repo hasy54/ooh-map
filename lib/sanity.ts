@@ -1,51 +1,45 @@
 import { createClient } from "next-sanity"
-import imageUrlBuilder from "@sanity/image-url"
 
-// Hardcode a valid dataset name to avoid configuration issues
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || ""
-const dataset = "production" // Hardcoded to ensure validity
-
-// Create the client
 export const client = createClient({
-  projectId,
-  dataset,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "",
+  dataset: "production",
   apiVersion: "2023-05-03",
   useCdn: false,
 })
 
-// Create an image URL builder
-const builder = imageUrlBuilder(client)
-
-// Helper function to get image URLs
-export function urlFor(source: any) {
-  return builder.image(source)
-}
-
-// Export GROQ queries
-export const listingsQuery = `*[_type == "listing"] | order(publishedAt desc) {
+export const listingsQuery = `*[_type == "listing"] {
   _id,
   title,
   slug,
-  excerpt,
+  description,
   mainImage,
-  publishedAt,
-  location,
-  price,
+  address,
+  city,
+  state,
+  lat,
+  lng,
   mediaType,
-  availability
+  price,
+  available,
+  publishedAt,
+  "imageUrl": mainImage.asset->url
 }`
 
 export const listingBySlugQuery = `*[_type == "listing" && slug.current == $slug][0] {
   _id,
   title,
   slug,
-  content,
+  description,
   mainImage,
-  gallery,
-  publishedAt,
-  location,
-  price,
+  address,
+  city,
+  state,
+  lat,
+  lng,
   mediaType,
-  availability,
-  seo
+  price,
+  available,
+  publishedAt,
+  seo,
+  "imageUrl": mainImage.asset->url
 }`
