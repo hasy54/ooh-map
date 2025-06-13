@@ -1,17 +1,15 @@
-import { defineField, defineType } from "sanity"
-
-export default defineType({
+export default {
   name: "listing",
-  title: "OOH Listing",
+  title: "Listing",
   type: "document",
   fields: [
-    defineField({
+    {
       name: "title",
       title: "Title",
       type: "string",
       validation: (Rule) => Rule.required(),
-    }),
-    defineField({
+    },
+    {
       name: "slug",
       title: "Slug",
       type: "slug",
@@ -20,38 +18,57 @@ export default defineType({
         maxLength: 96,
       },
       validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: "description",
-      title: "Description",
-      type: "text",
-      rows: 4,
-    }),
-    defineField({
-      name: "content",
-      title: "Content",
-      type: "array",
-      of: [
-        {
-          type: "block",
-        },
-        {
-          type: "image",
-          options: {
-            hotspot: true,
-          },
-        },
-      ],
-    }),
-    defineField({
-      name: "featuredImage",
-      title: "Featured Image",
+    },
+    {
+      name: "publishedAt",
+      title: "Published at",
+      type: "datetime",
+      initialValue: () => new Date().toISOString(),
+    },
+    {
+      name: "mainImage",
+      title: "Main image",
       type: "image",
       options: {
         hotspot: true,
       },
-    }),
-    defineField({
+    },
+    {
+      name: "excerpt",
+      title: "Excerpt",
+      type: "text",
+      rows: 3,
+    },
+    {
+      name: "body",
+      title: "Body",
+      type: "text",
+    },
+    {
+      name: "mediaType",
+      title: "Media Type",
+      type: "string",
+      options: {
+        list: [
+          { title: "Billboard", value: "billboard" },
+          { title: "Digital Display", value: "digital" },
+          { title: "Transit", value: "transit" },
+          { title: "Street Furniture", value: "street" },
+        ],
+      },
+    },
+    {
+      name: "price",
+      title: "Monthly Price (₹)",
+      type: "number",
+    },
+    {
+      name: "available",
+      title: "Available",
+      type: "boolean",
+      initialValue: true,
+    },
+    {
       name: "location",
       title: "Location",
       type: "object",
@@ -72,61 +89,18 @@ export default defineType({
           type: "string",
         },
         {
-          name: "coordinates",
-          title: "Coordinates",
-          type: "object",
-          fields: [
-            {
-              name: "lat",
-              title: "Latitude",
-              type: "number",
-            },
-            {
-              name: "lng",
-              title: "Longitude",
-              type: "number",
-            },
-          ],
+          name: "lat",
+          title: "Latitude",
+          type: "number",
+        },
+        {
+          name: "lng",
+          title: "Longitude",
+          type: "number",
         },
       ],
-    }),
-    defineField({
-      name: "mediaType",
-      title: "Media Type",
-      type: "string",
-      options: {
-        list: [
-          { title: "Billboard", value: "billboard" },
-          { title: "Bus Shelter", value: "bus-shelter" },
-          { title: "Digital Display", value: "digital" },
-          { title: "Transit", value: "transit" },
-        ],
-      },
-    }),
-    defineField({
-      name: "price",
-      title: "Monthly Price",
-      type: "number",
-    }),
-    defineField({
-      name: "availability",
-      title: "Availability",
-      type: "string",
-      options: {
-        list: [
-          { title: "Available", value: "available" },
-          { title: "Booked", value: "booked" },
-        ],
-      },
-      initialValue: "available",
-    }),
-    defineField({
-      name: "mapListingId",
-      title: "Map Listing ID",
-      type: "string",
-      description: "ID of the corresponding listing in the map database",
-    }),
-    defineField({
+    },
+    {
       name: "seo",
       title: "SEO",
       type: "object",
@@ -149,19 +123,21 @@ export default defineType({
           of: [{ type: "string" }],
         },
       ],
-    }),
-    defineField({
-      name: "publishedAt",
-      title: "Published at",
-      type: "datetime",
-      initialValue: () => new Date().toISOString(),
-    }),
+    },
   ],
   preview: {
     select: {
       title: "title",
-      media: "featuredImage",
-      subtitle: "location.city",
+      media: "mainImage",
+      location: "location.city",
+    },
+    prepare(selection) {
+      const { title, media, location } = selection
+      return {
+        title,
+        media,
+        subtitle: location ? `Location: ${location}` : "No location",
+      }
     },
   },
-})
+}
