@@ -7,7 +7,8 @@ import { schemaTypes } from "./sanity/schemas"
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || ""
 const dataset = "production" // Hardcoded to ensure validity
 
-export default defineConfig({
+// Create the config with the name sanityConfig
+const sanityConfig = defineConfig({
   name: "default",
   title: "OOH Listings CMS",
   projectId,
@@ -18,3 +19,6 @@ export default defineConfig({
   },
   basePath: "/admin",
 })
+
+// Export sanityConfig as default
+export default sanityConfig

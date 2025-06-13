@@ -20,12 +20,6 @@ export default {
       validation: (Rule) => Rule.required(),
     },
     {
-      name: "publishedAt",
-      title: "Published at",
-      type: "datetime",
-      initialValue: () => new Date().toISOString(),
-    },
-    {
       name: "mainImage",
       title: "Main image",
       type: "image",
@@ -34,15 +28,52 @@ export default {
       },
     },
     {
+      name: "gallery",
+      title: "Gallery",
+      type: "array",
+      of: [{ type: "image", options: { hotspot: true } }],
+    },
+    {
+      name: "publishedAt",
+      title: "Published at",
+      type: "datetime",
+    },
+    {
       name: "excerpt",
       title: "Excerpt",
       type: "text",
-      rows: 3,
+      rows: 4,
     },
     {
-      name: "body",
-      title: "Body",
-      type: "text",
+      name: "content",
+      title: "Content",
+      type: "array",
+      of: [
+        {
+          type: "block",
+        },
+        {
+          type: "image",
+          options: { hotspot: true },
+        },
+      ],
+    },
+    {
+      name: "location",
+      title: "Location",
+      type: "object",
+      fields: [
+        { name: "address", type: "string", title: "Address" },
+        { name: "city", type: "string", title: "City" },
+        { name: "state", type: "string", title: "State" },
+        { name: "lat", type: "number", title: "Latitude" },
+        { name: "lng", type: "number", title: "Longitude" },
+      ],
+    },
+    {
+      name: "price",
+      title: "Price",
+      type: "number",
     },
     {
       name: "mediaType",
@@ -51,77 +82,32 @@ export default {
       options: {
         list: [
           { title: "Billboard", value: "billboard" },
-          { title: "Digital Display", value: "digital" },
+          { title: "Digital", value: "digital" },
           { title: "Transit", value: "transit" },
-          { title: "Street Furniture", value: "street" },
+          { title: "Street Furniture", value: "street_furniture" },
         ],
       },
     },
     {
-      name: "price",
-      title: "Monthly Price (₹)",
-      type: "number",
-    },
-    {
-      name: "available",
-      title: "Available",
-      type: "boolean",
-      initialValue: true,
-    },
-    {
-      name: "location",
-      title: "Location",
-      type: "object",
-      fields: [
-        {
-          name: "address",
-          title: "Address",
-          type: "string",
-        },
-        {
-          name: "city",
-          title: "City",
-          type: "string",
-        },
-        {
-          name: "state",
-          title: "State",
-          type: "string",
-        },
-        {
-          name: "lat",
-          title: "Latitude",
-          type: "number",
-        },
-        {
-          name: "lng",
-          title: "Longitude",
-          type: "number",
-        },
-      ],
+      name: "availability",
+      title: "Availability",
+      type: "string",
+      options: {
+        list: [
+          { title: "Available", value: "available" },
+          { title: "Booked", value: "booked" },
+          { title: "Pending", value: "pending" },
+        ],
+      },
     },
     {
       name: "seo",
       title: "SEO",
       type: "object",
       fields: [
-        {
-          name: "metaTitle",
-          title: "Meta Title",
-          type: "string",
-        },
-        {
-          name: "metaDescription",
-          title: "Meta Description",
-          type: "text",
-          rows: 3,
-        },
-        {
-          name: "keywords",
-          title: "Keywords",
-          type: "array",
-          of: [{ type: "string" }],
-        },
+        { name: "title", type: "string", title: "SEO Title" },
+        { name: "description", type: "text", title: "Description" },
+        { name: "keywords", type: "array", of: [{ type: "string" }], title: "Keywords" },
       ],
     },
   ],
@@ -136,7 +122,7 @@ export default {
       return {
         title,
         media,
-        subtitle: location ? `Location: ${location}` : "No location",
+        subtitle: location ? `Location: ${location}` : "",
       }
     },
   },
