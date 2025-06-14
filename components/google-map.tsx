@@ -50,14 +50,8 @@ export function GoogleMap({ listings, selectedListing, onListingClick, center, z
           console.error("API route failed:", response.status, errorData)
 
           if (errorData.fallback) {
-            // Use fallback with client-side API key if available
-            const clientApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-            if (clientApiKey) {
-              console.log("Using fallback client-side API key")
-              const fallbackUrl = `https://maps.googleapis.com/maps/api/js?key=${clientApiKey}&libraries=marker&callback=initMap`
-              await loadMapScript(fallbackUrl)
-              return
-            }
+            // No fallback to client-side API key for security
+            console.log("Server-side API route is required for Google Maps")
           }
 
           throw new Error(`API route failed: ${response.status} ${response.statusText}`)
