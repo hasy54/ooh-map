@@ -44,16 +44,44 @@ export function GoogleMap({ listings, selectedListing, onListingClick, center, z
 
         // Fetch the script URL from our server-side API route
         const response = await fetch("/api/maps-api-url")
+
         if (!response.ok) {
-          throw new Error("Failed to load Google Maps API URL")
+          const errorData = await response.json().catch(() => ({}))
+          console.error("API route failed:", response.status, errorData)
+
+          if (errorData.fallback) {
+            // Use fallback with client-side API key if available
+            const clientApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+            if (clientApiKey) {
+              console.log("Using fallback client-side API key")
+              const fallbackUrl = `https://maps.googleapis.com/maps/api/js?key=${clientApiKey}&libraries=marker&callback=initMap`
+              await loadMapScript(fallbackUrl)
+              return
+            }
+          }
+
+          throw new Error(`API route failed: ${response.status} ${response.statusText}`)
         }
 
-        const { url } = await response.json()
-        console.log("Google Maps URL:", url)
+        const { url, success } = await response.json()
 
+        if (!success || !url) {
+          throw new Error("Invalid response from API route")
+        }
+
+        console.log("Google Maps URL:", url)
+        await loadMapScript(url)
+      } catch (error) {
+        console.error("Error loading Google Maps:", error)
+        setLoadingError(`Error loading Google Maps: ${error.message || error}`)
+      }
+    }
+
+    const loadMapScript = async (scriptUrl) => {
+      return new Promise((resolve, reject) => {
         // Create and load the script
         const script = document.createElement("script")
-        script.src = url
+        script.src = scriptUrl
         script.async = true
         script.defer = true
 
@@ -61,6 +89,7 @@ export function GoogleMap({ listings, selectedListing, onListingClick, center, z
         window.initMap = () => {
           console.log("Google Maps script loaded via callback")
           setIsLoaded(true)
+          resolve()
         }
 
         script.onload = () => {
@@ -69,6 +98,7 @@ export function GoogleMap({ listings, selectedListing, onListingClick, center, z
           if (window.google && window.google.maps && window.google.maps.Map) {
             console.log("Google Maps available after script load")
             setIsLoaded(true)
+            resolve()
           } else {
             console.log("Waiting for Google Maps to initialize...")
             // Wait a bit more for Google Maps to be ready
@@ -76,9 +106,10 @@ export function GoogleMap({ listings, selectedListing, onListingClick, center, z
               if (window.google && window.google.maps && window.google.maps.Map) {
                 console.log("Google Maps ready after timeout")
                 setIsLoaded(true)
+                resolve()
               } else {
                 console.error("Google Maps failed to initialize")
-                setLoadingError("Google Maps failed to initialize")
+                reject(new Error("Google Maps failed to initialize"))
               }
             }, 2000)
           }
@@ -86,22 +117,22 @@ export function GoogleMap({ listings, selectedListing, onListingClick, center, z
 
         script.onerror = (error) => {
           console.error("Failed to load Google Maps script:", error)
-          setLoadingError("Failed to load Google Maps script")
+          reject(new Error("Failed to load Google Maps script"))
         }
 
         document.head.appendChild(script)
 
         // Cleanup function
-        return () => {
+        const cleanup = () => {
           if (document.head.contains(script)) {
             document.head.removeChild(script)
           }
           delete window.initMap
         }
-      } catch (error) {
-        console.error("Error loading Google Maps:", error)
-        setLoadingError(`Error loading Google Maps: ${error}`)
-      }
+
+        // Store cleanup for later use
+        script._cleanup = cleanup
+      })
     }
 
     loadGoogleMaps()

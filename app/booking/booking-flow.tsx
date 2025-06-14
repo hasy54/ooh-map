@@ -5,9 +5,9 @@ import { Calendar, User, Mail, Phone, Building, CheckCircle, AlertCircle, Loader
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { OOHListing } from "../../../../types/ooh"
-import type { BookingFormData } from "../../../../types/booking"
-import { BookingService } from "../../../../lib/booking-service"
+import type { OOHListing } from "../../types/ooh"
+import type { BookingFormData } from "../../types/booking"
+import { BookingService } from "../../lib/booking-service"
 
 interface BookingFlowProps {
   listing: OOHListing

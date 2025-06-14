@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://ooh-advertising-india.vercel.app"
+  const baseUrl = "https://www.oohindia.in"
 
   // List of cities
   const cities = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "All Cities"]

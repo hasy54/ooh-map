@@ -378,7 +378,7 @@ export function WaterfallResults({
 
             {/* Action Buttons with slide-up animation */}
             <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-300 delay-400">
-              <a href={`/listings/${selectedListingDetails.id}/booking`} className="block">
+              <a href={`/booking?listing=${selectedListingDetails.id}`} className="block">
                 <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors">
                   Book Now
                 </button>

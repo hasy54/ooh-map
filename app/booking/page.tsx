@@ -1,53 +1,28 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { MediaService } from "../../../../lib/media-service"
-import { findListingBySlug, generateListingSlug } from "../../../../utils/slug-utils"
+import { MediaService } from "../../lib/media-service"
 import { BookingFlow } from "./booking-flow"
 
 interface PageProps {
-  params: {
-    slug: string
-  }
-}
-
-// Generate static paths for all listings
-export async function generateStaticParams() {
-  try {
-    console.log("Generating static params for booking pages...")
-
-    // Get demo listings directly
-    const demoListings = MediaService.getDemoListings()
-
-    // For production, you might want to get a limited set of popular listings
-    // instead of all listings to improve build performance
-    const listings = await MediaService.getListings()
-    console.log("Found listings:", listings.length)
-
-    // Combine real listings with demo listings
-    const allListings = [...listings, ...demoListings]
-
-    const params = allListings.map((listing) => {
-      const slug = listing.id.startsWith("demo-") ? listing.id : generateListingSlug(listing)
-      console.log(`Generated booking slug for "${listing.name}": ${slug}`)
-      return { slug }
-    })
-
-    console.log("Generated booking params:", params.length)
-    return params
-  } catch (error) {
-    console.error("Error generating static params for booking:", error)
-    // Return demo params as fallback
-    return [{ slug: "demo-1" }, { slug: "demo-2" }, { slug: "demo-3" }]
+  searchParams: {
+    listing?: string
   }
 }
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  if (!searchParams.listing) {
+    return {
+      title: "Book OOH Advertising Space",
+      description: "Book premium outdoor advertising space across India",
+      robots: "noindex", // Don't index booking pages
+    }
+  }
+
   try {
-    const listings = await MediaService.getListings()
-    const listing = findListingBySlug(params.slug, listings)
+    const listing = await MediaService.getListingById(searchParams.listing)
 
     if (!listing) {
       return {
@@ -73,12 +48,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function BookingPage({ params }: PageProps) {
-  try {
-    console.log("Rendering booking page for slug:", params.slug)
+export default async function BookingPage({ searchParams }: PageProps) {
+  // Redirect to home if no listing ID is provided
+  if (!searchParams.listing) {
+    redirect("/")
+  }
 
-    // Directly fetch the single listing by ID instead of getting all listings
-    const listing = await MediaService.getListingById(params.slug)
+  try {
+    console.log("Rendering booking page for listing ID:", searchParams.listing)
+
+    // Fetch the listing by ID
+    const listing = await MediaService.getListingById(searchParams.listing)
 
     if (!listing) {
       console.log("No listing found for booking, calling notFound()")
@@ -93,7 +73,7 @@ export default async function BookingPage({ params }: PageProps) {
         <header className="bg-white border-b sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
-              <Link href={`/listings/${params.slug}`}>
+              <Link href="/">
                 <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
                   <ArrowLeft className="w-4 h-4" />
                   Back to Listing
