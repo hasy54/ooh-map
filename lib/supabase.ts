@@ -148,6 +148,56 @@ export interface Database {
           lat?: string | null
         }
       }
+      bookings: {
+        Row: {
+          id: string
+          start_date: string
+          end_date: string
+          client_name: string
+          client_email: string
+          booking_price: number
+          status: "pending" | "confirmed" | "cancelled"
+          created_at: string | null
+          updated_at: string | null
+          media_id: any | null // JSONB
+          period: number | null
+          booker: string | null
+          proposal_id: string | null
+          code: number | null
+        }
+        Insert: {
+          id?: string
+          start_date: string
+          end_date: string
+          client_name: string
+          client_email: string
+          booking_price: number
+          status: "pending" | "confirmed" | "cancelled"
+          created_at?: string | null
+          updated_at?: string | null
+          media_id?: any | null
+          period?: number | null
+          booker?: string | null
+          proposal_id?: string | null
+          code?: number | null
+        }
+        Update: {
+          id?: string
+          start_date?: string
+          end_date?: string
+          client_name?: string
+          client_email?: string
+          booking_price?: number
+          status?: "pending" | "confirmed" | "cancelled"
+          created_at?: string | null
+          updated_at?: string | null
+          media_id?: any | null
+          period?: number | null
+          booker?: string | null
+          proposal_id?: string | null
+          code?: number | null
+        }
+      }
       users: {
         Row: {
           user_id: string

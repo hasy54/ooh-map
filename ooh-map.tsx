@@ -83,7 +83,7 @@ const DEMO_LISTINGS: OOHListing[] = [
   {
     id: "demo-3",
     name: "Downtown Bus Shelter",
-    type: "Bus Shelter",
+    type: "Transit",
     location: {
       lat: 34.0522,
       lng: -118.2437,
@@ -101,7 +101,7 @@ const DEMO_LISTINGS: OOHListing[] = [
       monthly: 25000,
       currency: "USD",
     },
-    availability: "Booked",
+    availability: "Available", // Changed from "Booked" to "Available" for demo
     images: ["/placeholder.svg?height=300&width=400"],
     description: "Bus shelter advertising in busy downtown area",
     features: ["Transit Advertising", "Pedestrian Traffic", "Urban Location"],

@@ -162,6 +162,130 @@ export class MediaService {
     }
   }
 
+  // Get a single listing by ID - optimized version
+  static async getListingById(id: string): Promise<OOHListing | null> {
+    try {
+      console.log(`Fetching single listing by ID: ${id}`)
+
+      // Handle demo listings
+      if (id.startsWith("demo-")) {
+        const demoListings = this.getDemoListings()
+        return demoListings.find((listing) => listing.id === id) || null
+      }
+
+      const { data, error } = await supabase.from("media").select("*").eq("id", id).single()
+
+      if (error) {
+        console.error("Error fetching listing by ID:", error)
+        return null
+      }
+
+      return await convertToOOHListing(data)
+    } catch (error) {
+      console.error("Error in getListingById:", error)
+      return null
+    }
+  }
+
+  // Add demo listings method
+  static getDemoListings(): OOHListing[] {
+    return [
+      {
+        id: "demo-1",
+        name: "Times Square Billboard",
+        type: "Billboard",
+        location: {
+          lat: 40.758,
+          lng: -73.9855,
+          address: "Times Square, New York",
+          city: "New York",
+          state: "NY",
+        },
+        specifications: {
+          size: "48ft x 14ft",
+          illumination: "Digital",
+          visibility: "High",
+          traffic: "500,000+ daily",
+        },
+        pricing: {
+          monthly: 250000,
+          currency: "INR",
+        },
+        availability: "Available",
+        images: ["/placeholder.svg?height=400&width=600"],
+        description: "Premium digital billboard in the heart of Times Square",
+        features: ["Digital Display", "High Traffic", "24/7 Visibility"],
+        demographics: {
+          footfall: "500,000+ daily",
+          targetAudience: "Mixed demographics",
+        },
+        managedBy: "Yash Advertising",
+      },
+      {
+        id: "demo-2",
+        name: "Highway 101 Billboard",
+        type: "Billboard",
+        location: {
+          lat: 37.4419,
+          lng: -122.143,
+          address: "Highway 101, Palo Alto",
+          city: "Palo Alto",
+          state: "CA",
+        },
+        specifications: {
+          size: "40ft x 12ft",
+          illumination: "Lit",
+          visibility: "High",
+          traffic: "200,000+ daily",
+        },
+        pricing: {
+          monthly: 150000,
+          currency: "INR",
+        },
+        availability: "Available",
+        images: ["/placeholder.svg?height=400&width=600"],
+        description: "Strategic highway billboard with excellent visibility",
+        features: ["Backlit", "Highway Location", "High Visibility"],
+        demographics: {
+          footfall: "200,000+ daily",
+          targetAudience: "Commuters and travelers",
+        },
+        managedBy: "Yash Advertising",
+      },
+      {
+        id: "demo-3",
+        name: "Downtown Bus Shelter",
+        type: "Bus Shelter",
+        location: {
+          lat: 37.7749,
+          lng: -122.4194,
+          address: "Market Street, San Francisco",
+          city: "San Francisco",
+          state: "CA",
+        },
+        specifications: {
+          size: "6ft x 4ft",
+          illumination: "Lit",
+          visibility: "Medium",
+          traffic: "50,000+ daily",
+        },
+        pricing: {
+          monthly: 75000,
+          currency: "INR",
+        },
+        availability: "Available",
+        images: ["/placeholder.svg?height=400&width=600"],
+        description: "Premium bus shelter advertising in downtown area",
+        features: ["Backlit", "Weather Protected", "Pedestrian Traffic"],
+        demographics: {
+          footfall: "50,000+ daily",
+          targetAudience: "Urban professionals and commuters",
+        },
+        managedBy: "Yash Advertising",
+      },
+    ]
+  }
+
   // Get listings by city - now returns all listings
   static async getListingsByCity(city: string): Promise<OOHListing[]> {
     return this.getListings()

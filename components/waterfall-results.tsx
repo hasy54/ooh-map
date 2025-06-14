@@ -378,9 +378,15 @@ export function WaterfallResults({
 
             {/* Action Buttons with slide-up animation */}
             <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-300 delay-400">
+              <a href={`/listings/${selectedListingDetails.id}/booking`} className="block">
+                <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors">
+                  Book Now
+                </button>
+              </a>
+
               <button
                 onClick={(e) => handleShareClick(selectedListingDetails, e)}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center"
+                className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share

@@ -8,10 +8,24 @@ export function getIdFromSlug(slug: string): string | null {
 }
 
 /**
- * Simple slug generation for basic use
+ * Generate a URL-friendly slug for a listing
  */
 export function generateListingSlug(listing: OOHListing): string {
-  return listing.id // Just use the ID as slug
+  // For demo listings, use the ID directly
+  if (listing.id.startsWith("demo-")) {
+    return listing.id
+  }
+
+  // For real listings, create a slug from name and ID
+  const nameSlug = listing.name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single
+    .trim()
+
+  // Combine name slug with ID for uniqueness
+  return `${nameSlug}-${listing.id.slice(0, 8)}`
 }
 
 /**
