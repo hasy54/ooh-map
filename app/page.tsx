@@ -164,15 +164,20 @@ export default function Home() {
             <motion.div
               key="search"
               custom={animationDirection}
-              initial={(direction) => ({
-                x: direction === 'forward' ? 0 : 300,
-                opacity: direction === 'forward' ? 1 : 0
-              })}
-              animate={{ x: 0, opacity: 1 }}
-              exit={(direction) => ({
-                x: direction === 'forward' ? -300 : 300,
-                opacity: 0
-              })}
+              variants={{
+                initial: (direction: 'forward' | 'backward') => ({
+                  x: direction === 'forward' ? 0 : 300,
+                  opacity: direction === 'forward' ? 1 : 0
+                }),
+                animate: { x: 0, opacity: 1 },
+                exit: (direction: 'forward' | 'backward') => ({
+                  x: direction === 'forward' ? -300 : 300,
+                  opacity: 0
+                })
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="h-full flex items-center justify-center"
             >
@@ -197,15 +202,20 @@ export default function Home() {
                   setMediaResults([]);
                 }
               }}
-              initial={(direction) => ({
-                x: direction === 'forward' ? 300 : -300,
-                opacity: 0
-              })}
-              animate={{ x: 0, opacity: 1 }}
-              exit={(direction) => ({
-                x: direction === 'forward' ? -300 : 300,
-                opacity: 0
-              })}
+              variants={{
+                initial: (direction: 'forward' | 'backward') => ({
+                  x: direction === 'forward' ? 300 : -300,
+                  opacity: 0
+                }),
+                animate: { x: 0, opacity: 1 },
+                exit: (direction: 'forward' | 'backward') => ({
+                  x: direction === 'forward' ? -300 : 300,
+                  opacity: 0
+                })
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="h-full"
             >
@@ -232,15 +242,20 @@ export default function Home() {
                   setSelectedMedia(null);
                 }
               }}
-              initial={(direction) => ({
-                x: direction === 'forward' ? 300 : -300,
-                opacity: 0
-              })}
-              animate={{ x: 0, opacity: 1 }}
-              exit={(direction) => ({
-                x: direction === 'forward' ? -300 : 300,
-                opacity: 0
-              })}
+              variants={{
+                initial: (direction: 'forward' | 'backward') => ({
+                  x: direction === 'forward' ? 300 : -300,
+                  opacity: 0
+                }),
+                animate: { x: 0, opacity: 1 },
+                exit: (direction: 'forward' | 'backward') => ({
+                  x: direction === 'forward' ? -300 : 300,
+                  opacity: 0
+                })
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="h-full overflow-y-auto bg-white"
             >

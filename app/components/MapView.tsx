@@ -8,11 +8,14 @@ import 'leaflet/dist/leaflet.css';
 interface Media {
   id: string;
   name: string;
-  lat: string;
-  long: string;
+  type: string;
   traffic: string;
   width: number;
   height: number;
+  lat: string;
+  long: string;
+  city_name: string;
+  state_name: string;
 }
 
 interface MapViewProps {
