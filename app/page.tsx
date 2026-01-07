@@ -80,15 +80,22 @@ export default function Home() {
 
       const response = await fetch(`/api/media?${params}`);
       const data = await response.json();
-      setMediaResults(data);
 
-      if (!isMobile) {
-        setShowResults(true);
-      }
+      if (Array.isArray(data)) {
+        setMediaResults(data);
 
-      // Auto-select first result
-      if (data.length > 0 && !isMobile) {
-        setSelectedMedia(data[0]);
+        if (!isMobile) {
+          setShowResults(true);
+        }
+
+        // Auto-select first result
+        if (data.length > 0 && !isMobile) {
+          setSelectedMedia(data[0]);
+        }
+      } else {
+        console.error('Error fetching media:', data.error || 'Invalid response');
+        setMediaResults([]);
+        setSelectedMedia(null);
       }
     } catch (error) {
       console.error('Error fetching media:', error);

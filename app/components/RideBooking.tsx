@@ -44,8 +44,18 @@ export function RideBooking({ onSearch, onSelectionChange }: RideBookingProps) {
   useEffect(() => {
     fetch('/api/states')
       .then(res => res.json())
-      .then(data => setStates(data))
-      .catch(err => console.error('Error fetching states:', err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setStates(data);
+        } else {
+          console.error('Error fetching states:', data.error || 'Invalid response');
+          setStates([]);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching states:', err);
+        setStates([]);
+      });
   }, []);
 
   // Handle state changes and reset cascade
@@ -57,8 +67,18 @@ export function RideBooking({ onSearch, onSelectionChange }: RideBookingProps) {
       // Fetch cities for the selected state
       fetch(`/api/cities?state_id=${selectedState}`)
         .then(res => res.json())
-        .then(data => setCities(data))
-        .catch(err => console.error('Error fetching cities:', err));
+        .then(data => {
+          if (Array.isArray(data)) {
+            setCities(data);
+          } else {
+            console.error('Error fetching cities:', data.error || 'Invalid response');
+            setCities([]);
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching cities:', err);
+          setCities([]);
+        });
 
       // Only reset if state actually changed (not initial selection)
       if (stateChanged) {
@@ -90,8 +110,18 @@ export function RideBooking({ onSearch, onSelectionChange }: RideBookingProps) {
       // Fetch media types for selected state + city
       fetch(`/api/media-types?state_id=${selectedState}&city_id=${selectedCity}`)
         .then(res => res.json())
-        .then(data => setMediaTypes(data))
-        .catch(err => console.error('Error fetching media types:', err));
+        .then(data => {
+          if (Array.isArray(data)) {
+            setMediaTypes(data);
+          } else {
+            console.error('Error fetching media types:', data.error || 'Invalid response');
+            setMediaTypes([]);
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching media types:', err);
+          setMediaTypes([]);
+        });
 
       // Only reset media type if city actually changed (not initial selection)
       if (cityChanged) {
